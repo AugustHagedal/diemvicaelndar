@@ -1,12 +1,13 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
+import { Firestore, collection, doc, getDoc, setDoc } from '@angular/fire/firestore';
 
 interface CalendarDay {
   day: number;
   opened: boolean;
-  content: string;
   weekday: string;
+  unlocked_content_text?: string;
 }
 
 @Component({
@@ -14,9 +15,11 @@ interface CalendarDay {
   templateUrl: './calendar.html',
   styleUrl: './calendar.scss'
 })
-export class Calendar {
+export class Calendar implements OnInit {
   private auth = inject(Auth);
   private router = inject(Router);
+  private firestore = inject(Firestore);
+  private userId: string | null = null;
   
   protected readonly title = signal('Advent Calendar 2024');
   
@@ -26,15 +29,75 @@ export class Calendar {
     Array.from({ length: 24 }, (_, i) => ({
       day: i + 1,
       opened: false,
-      content: this.getContentForDay(i + 1),
-      weekday: this.weekdays[i % 6]
+      weekday: this.weekdays[i % 6],
+      unlocked_content_text: ''
     }))
   );
 
-  protected openDay(day: CalendarDay): void {
+  async ngOnInit() {
+    // Get the current user's UID
+    const user = this.auth.currentUser;
+    if (user) {
+      this.userId = user.uid;
+      // Load the opened state from Firestore for all days
+      await this.loadDaysFromFirestore();
+      // Open all days on login
+      await this.openAllDays();
+    }
+  }
+
+  private async loadDaysFromFirestore(): Promise<void> {
+    if (!this.userId) return;
+    
+    const updatedDays = [...this.days()];
+    
+    for (let i = 0; i < 24; i++) {
+      const dayNum = i + 1;
+      // Use user-specific path: users/{userId}/advent_calendar_days/day_{dayNum}
+      const docRef = doc(this.firestore, `users/${this.userId}/advent_calendar_days`, `day_${dayNum}`);
+      
+      try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          updatedDays[i].opened = data['opened'] || false;
+          updatedDays[i].unlocked_content_text = data['unlocked_content_text'] || '';
+        }
+      } catch (error) {
+        console.error(`Error loading day ${dayNum}:`, error);
+      }
+    }
+    
+    this.days.set(updatedDays);
+  }
+
+  protected async openDay(day: CalendarDay): Promise<void> {
     if (!day.opened) {
       day.opened = true;
       this.days.set([...this.days()]);
+      
+      // Save to Firestore
+      await this.saveDayToFirestore(day);
+    }
+  }
+
+  private async saveDayToFirestore(day: CalendarDay): Promise<void> {
+    if (!this.userId) return;
+    
+    // Use user-specific path: users/{userId}/advent_calendar_days/day_{dayNum}
+    const docRef = doc(this.firestore, `users/${this.userId}/advent_calendar_days`, `day_${day.day}`);
+    
+    try {
+      await setDoc(docRef, {
+        day: day.day,
+        opened: day.opened,
+        openedAt: new Date().toISOString(),
+        unlocked_content_text: day.unlocked_content_text || '',
+        weekday: day.weekday
+      });
+      console.log(`Day ${day.day} saved to Firestore for user ${this.userId}`);
+    } catch (error) {
+      console.error(`Error saving day ${day.day}:`, error);
     }
   }
 
@@ -47,33 +110,43 @@ export class Calendar {
     }
   }
 
-  private getContentForDay(day: number): string {
-    const messages = [
-      '🎄 Joy to the world!',
-      '⭐ Shine bright!',
-      '🎁 A gift for you!',
-      '❄️ Let it snow!',
-      '🕯️ Light the way',
-      '🔔 Jingle bells!',
-      '🎅 Ho ho ho!',
-      '🤶 Merry & bright',
-      '🦌 Reindeer magic',
-      '⛄ Frosty greetings',
-      '🎶 Carol time!',
-      '🌟 Starry night',
-      '🎊 Celebrate!',
-      '🍪 Cookie time!',
-      '🥛 Milk & cookies',
-      '🎀 Wrapped with love',
-      '🏠 Home sweet home',
-      '❤️ Love & peace',
-      '✨ Magic moments',
-      '🎵 Silent night',
-      '🌙 Moonlit wonder',
-      '🎺 Herald angels',
-      '🕊️ Peace on Earth',
-      '🎉 Christmas Eve!'
-    ];
-    return messages[day - 1] || '🎄 Merry Christmas!';
+  protected async openAllDays(): Promise<void> {
+    const updatedDays = this.days().map(day => ({
+      ...day,
+      opened: true
+    }));
+    this.days.set(updatedDays);
+
+    // Save all days to Firestore
+    for (const day of updatedDays) {
+      await this.saveDayToFirestore(day);
+    }
+  }
+
+  protected async resetAllDays(): Promise<void> {
+    if (!this.userId) return;
+    
+    const updatedDays = this.days().map(day => ({
+      ...day,
+      opened: false
+    }));
+    this.days.set(updatedDays);
+
+    // Update all days in Firestore
+    for (const day of updatedDays) {
+      const docRef = doc(this.firestore, `users/${this.userId}/advent_calendar_days`, `day_${day.day}`);
+      try {
+        await setDoc(docRef, {
+          day: day.day,
+          opened: false,
+          resetAt: new Date().toISOString(),
+          unlocked_content_text: day.unlocked_content_text || '',
+          weekday: day.weekday
+        });
+      } catch (error) {
+        console.error(`Error resetting day ${day.day}:`, error);
+      }
+    }
+    console.log('All days reset');
   }
 }

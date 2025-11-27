@@ -49,7 +49,15 @@ main {
   margin-bottom: 1rem;
 }
 
-.logout-button {
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.logout-button,
+.reset-button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 2px solid white;
@@ -59,7 +67,6 @@ main {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 1rem;
 
   &:hover {
     background: rgba(255, 255, 255, 0.3);
@@ -69,6 +76,15 @@ main {
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+.reset-button {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: #fca5a5;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.5);
   }
 }
 

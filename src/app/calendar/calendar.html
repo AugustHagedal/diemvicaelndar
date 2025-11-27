@@ -2,7 +2,10 @@
   <div class="header">
     <h1>{{ title() }}</h1>
     <p>Click on each day to reveal a surprise! 🎄</p>
-    <button class="logout-button" (click)="logout()">Log Out</button>
+    <div class="button-group">
+      <button class="reset-button" (click)="resetAllDays()">Reset All Days</button>
+      <button class="logout-button" (click)="logout()">Log Out</button>
+    </div>
   </div>
 
   <div class="calendar-grid">
@@ -17,7 +20,7 @@
           <div class="door-icon">🎁</div>
         }
         @if (day.opened) {
-          <div class="day-content">{{ day.content }}</div>
+          <div class="day-content">{{ day.unlocked_content_text }}</div>
         }
         <div class="weekday-label">{{ day.weekday }}</div>
       </div>
