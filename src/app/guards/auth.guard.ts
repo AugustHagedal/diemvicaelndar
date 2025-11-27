@@ -1,0 +1,23 @@
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { Auth, authState } from '@angular/fire/auth';
+import { map, take } from 'rxjs/operators';
+
+export const authGuard = () => {
+  const auth = inject(Auth);
+  const router = inject(Router);
+
+  return authState(auth).pipe(
+    take(1),
+    map(user => {
+      if (user) {
+        // User is logged in, allow access
+        return true;
+      } else {
+        // User is not logged in, redirect to login
+        router.navigate(['/login']);
+        return false;
+      }
+    })
+  );
+};

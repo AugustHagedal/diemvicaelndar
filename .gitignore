@@ -41,3 +41,14 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+.fake
+# Firebase
+.firebase
+*-debug.log
+.runtimeconfig.json
+
+# Firebase credentials (protect API keys)
+src/app/app.config.ts
+src/environments/environment.ts
+src/environments/environment.prod.ts
