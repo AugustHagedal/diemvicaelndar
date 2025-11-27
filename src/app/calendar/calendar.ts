@@ -8,6 +8,8 @@ interface CalendarDay {
   opened: boolean;
   weekday: string;
   unlocked_content_text?: string;
+  isAvailable?: boolean;
+  daysUntilAvailable?: number;
 }
 
 @Component({
@@ -21,16 +23,22 @@ export class Calendar implements OnInit {
   private firestore = inject(Firestore);
   private userId: string | null = null;
   
-  protected readonly title = signal('Advent Calendar 2024');
+  protected readonly title = signal('Jimmys Julekalender 2025!');
+  protected readonly username = signal<string>('');
+  protected readonly isLoading = signal<boolean>(true);
+  protected readonly countdownMessage = signal<string>('');
+  protected readonly testMode = signal<boolean>(false);
   
-  private readonly weekdays = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
+  private readonly weekdays = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
   
   protected readonly days = signal<CalendarDay[]>(
     Array.from({ length: 24 }, (_, i) => ({
       day: i + 1,
       opened: false,
-      weekday: this.weekdays[i % 6],
-      unlocked_content_text: ''
+      weekday: this.weekdays[i % 7],
+      unlocked_content_text: '',
+      isAvailable: false,
+      daysUntilAvailable: 0
     }))
   );
 
@@ -39,17 +47,63 @@ export class Calendar implements OnInit {
     const user = this.auth.currentUser;
     if (user) {
       this.userId = user.uid;
+      this.isLoading.set(true);
+      // Load user profile to get username
+      await this.loadUserProfile();
       // Load the opened state from Firestore for all days
       await this.loadDaysFromFirestore();
-      // Open all days on login
-      await this.openAllDays();
+      // Update availability based on current date
+      this.updateDaysAvailability();
+      this.isLoading.set(false);
+    }
+  }
+
+  private updateDaysAvailability(): void {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed (11 = December)
+    const currentDay = now.getDate();
+    
+    const updatedDays = this.days().map(day => {
+      // Check if it's December and the day is available
+      const targetDate = new Date(currentYear, 11, day.day); // December is month 11
+      const isAvailable = now >= targetDate;
+      
+      // Calculate days until available
+      const daysUntilAvailable = isAvailable ? 0 : Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      
+      return {
+        ...day,
+        isAvailable,
+        daysUntilAvailable
+      };
+    });
+    
+    this.days.set(updatedDays);
+  }
+
+  private async loadUserProfile(): Promise<void> {
+    if (!this.userId) return;
+    
+    const userDocRef = doc(this.firestore, `users/${this.userId}`);
+    try {
+      const docSnap = await getDoc(userDocRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        this.username.set(data['username'] || 'Guest');
+      } else {
+        this.username.set('Guest');
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      this.username.set('Guest');
     }
   }
 
   private async loadDaysFromFirestore(): Promise<void> {
     if (!this.userId) return;
     
-    const updatedDays = [...this.days()];
+    const updatedDays = this.days().map(day => ({ ...day }));
     
     for (let i = 0; i < 24; i++) {
       const dayNum = i + 1;
@@ -62,16 +116,33 @@ export class Calendar implements OnInit {
           const data = docSnap.data();
           updatedDays[i].opened = data['opened'] || false;
           updatedDays[i].unlocked_content_text = data['unlocked_content_text'] || '';
+          console.log(`Day ${dayNum} loaded: opened=${updatedDays[i].opened}, content="${updatedDays[i].unlocked_content_text}"`);
+        } else {
+          console.log(`Day ${dayNum}: No document found in Firestore`);
         }
       } catch (error) {
         console.error(`Error loading day ${dayNum}:`, error);
       }
     }
     
-    this.days.set(updatedDays);
+    this.days.set([...updatedDays]);
+    console.log(`Total days loaded:`, updatedDays.filter(d => d.opened).length, 'opened');
   }
 
   protected async openDay(day: CalendarDay): Promise<void> {
+    // Check if the day is available (skip check in test mode)
+    if (!this.testMode() && !day.isAvailable) {
+      if (day.daysUntilAvailable === 1) {
+        this.countdownMessage.set(`Denne dag kan åbnes i morgen! 🎄`);
+      } else {
+        this.countdownMessage.set(`Denne dag kan åbnes om ${day.daysUntilAvailable} dage! 🎄`);
+      }
+      
+      // Clear message after 3 seconds
+      setTimeout(() => this.countdownMessage.set(''), 3000);
+      return;
+    }
+    
     if (!day.opened) {
       day.opened = true;
       this.days.set([...this.days()]);
@@ -108,6 +179,11 @@ export class Calendar implements OnInit {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  }
+
+  protected toggleTestMode(): void {
+    this.testMode.set(!this.testMode());
+    console.log(`Test mode: ${this.testMode() ? 'ON' : 'OFF'}`);
   }
 
   protected async openAllDays(): Promise<void> {
