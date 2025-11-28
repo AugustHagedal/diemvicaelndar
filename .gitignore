@@ -49,6 +49,6 @@ Thumbs.db
 .runtimeconfig.json
 
 # Firebase credentials (protect API keys)
-src/app/app.config.ts
-src/environments/environment.ts
-src/environments/environment.prod.ts
+# Note: Firebase client config is safe to commit (security is handled by Firebase Rules)
+# src/environments/environment.ts
+# src/environments/environment.prod.ts
