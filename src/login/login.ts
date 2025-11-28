@@ -37,7 +37,7 @@ export class Login implements OnInit, AfterViewInit {
     this.errorMessage.set('');
     
     if (!this.username() || !this.password()) {
-      this.errorMessage.set('Please enter both email and password');
+      this.errorMessage.set('Indtast venligst både e-mail og adgangskode');
       return;
     }
 
@@ -59,18 +59,18 @@ export class Login implements OnInit, AfterViewInit {
       console.error('Login error:', error);
       
       // Handle Firebase Auth errors
-      let message = 'Login failed. Please try again.';
+      let message = 'Login mislykkedes. Prøv venligst igen.';
       
       if (error.code === 'auth/invalid-email') {
-        message = 'Invalid email address format.';
+        message = 'Ugyldig e-mail adresse format.';
       } else if (error.code === 'auth/user-disabled') {
-        message = 'This account has been disabled.';
+        message = 'Denne konto er blevet deaktiveret.';
       } else if (error.code === 'auth/user-not-found') {
-        message = 'No account found with this email.';
+        message = 'Ingen konto fundet med denne e-mail.';
       } else if (error.code === 'auth/wrong-password') {
-        message = 'Incorrect password.';
+        message = 'Forkert adgangskode.';
       } else if (error.code === 'auth/invalid-credential') {
-        message = 'Invalid email or password.';
+        message = 'Ugyldig e-mail eller adgangskode.';
       }
       
       this.errorMessage.set(message);
