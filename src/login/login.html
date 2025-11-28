@@ -2,7 +2,8 @@
   <div class="login-card">
     <div class="login-header">
       <h1>🎄Julekalender 2025🎄</h1>
-      <p>Log ind for at se din overraskelse!</p>
+      <p>Log ind for at se din helt egen julekalender!</p>
+      <p>Lavet af August🎅</p>
     </div>
 
     <form (submit)="onSubmit()" class="login-form">
@@ -13,7 +14,7 @@
           id="username"
           [value]="username()"
           (input)="updateUsername($event)"
-          placeholder="Enter your email"
+          placeholder="Indtast din e-mail"
           [disabled]="isLoading()"
           required
         />
@@ -26,7 +27,7 @@
           id="password"
           [value]="password()"
           (input)="updatePassword($event)"
-          placeholder="Enter your password"
+          placeholder="Indtast din kode"
           [disabled]="isLoading()"
           required
         />
