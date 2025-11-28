@@ -9,6 +9,18 @@
     "Segoe UI Symbol";
   background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
   padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.snow-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .login-card {
@@ -18,6 +30,8 @@
   padding: 2.5rem;
   width: 100%;
   max-width: 400px;
+  position: relative;
+  z-index: 2;
 }
 
 .login-header {

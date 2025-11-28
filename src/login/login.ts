@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth, signInWithEmailAndPassword, authState } from '@angular/fire/auth';
@@ -9,13 +9,17 @@ import { Auth, signInWithEmailAndPassword, authState } from '@angular/fire/auth'
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
-export class Login implements OnInit {
+export class Login implements OnInit, AfterViewInit {
   private auth = inject(Auth);
+  @ViewChild('snowCanvas', { static: false }) snowCanvas!: ElementRef<HTMLCanvasElement>;
   
   protected username = signal('');
   protected password = signal('');
   protected errorMessage = signal('');
   protected isLoading = signal(false);
+
+  private snowflakes: Array<{x: number, y: number, radius: number, speed: number, drift: number}> = [];
+  private animationId: number | null = null;
 
   constructor(private router: Router) {}
 
@@ -83,5 +87,82 @@ export class Login implements OnInit {
   protected updatePassword(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.password.set(input.value);
+  }
+
+  ngAfterViewInit(): void {
+    this.initSnowfall();
+  }
+
+  private initSnowfall(): void {
+    const canvas = this.snowCanvas.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size and create snowflakes based on screen size
+    const initializeSnowflakes = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      // Adjust snowflake count and size based on screen width
+      const isMobile = window.innerWidth <= 768;
+      const snowflakeCount = isMobile ? 75 : 150;
+      const maxRadius = isMobile ? 2.5 : 3;
+      const minRadius = isMobile ? 0.8 : 1;
+      
+      // Clear existing snowflakes
+      this.snowflakes = [];
+      
+      // Create new snowflakes
+      for (let i = 0; i < snowflakeCount; i++) {
+        this.snowflakes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * (maxRadius - minRadius) + minRadius,
+          speed: Math.random() * 1 + 0.5,
+          drift: Math.random() * 0.5 - 0.25
+        });
+      }
+    };
+    
+    initializeSnowflakes();
+    window.addEventListener('resize', initializeSnowflakes);
+
+    // Animation loop
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+
+      this.snowflakes.forEach(flake => {
+        ctx.moveTo(flake.x, flake.y);
+        ctx.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+
+        // Update position
+        flake.y += flake.speed;
+        flake.x += flake.drift;
+
+        // Reset snowflake if it goes off screen
+        if (flake.y > canvas.height) {
+          flake.y = 0;
+          flake.x = Math.random() * canvas.width;
+        }
+        if (flake.x > canvas.width) {
+          flake.x = 0;
+        } else if (flake.x < 0) {
+          flake.x = canvas.width;
+        }
+      });
+
+      ctx.fill();
+      this.animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
   }
 }
