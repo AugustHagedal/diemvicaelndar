@@ -1,24 +1,28 @@
 <main>
+  @if (showPopup() && selectedDay()) {
+    <app-popup 
+      [day]="selectedDay()!.day"
+      [text]="selectedDay()!.unlocked_content_text || ''"
+      [imageUrl]="selectedDay()!.image_url || ''"
+      [weekday]="selectedDay()!.weekday"
+      (close)="closePopup()"
+    />
+  }
+
   @if (countdownMessage()) {
     <div class="countdown-overlay" (click)="countdownMessage.set('')">
       <div class="countdown-message" (click)="$event.stopPropagation()">{{ countdownMessage() }}</div>
     </div>
   }
 
-  <div class="header">
+  <app-header (toggleTest)="toggleTestMode()" (logout)="logout()" (reset)="resetAllDays()"></app-header>
+
+  <div class="header-sub">
     <h1>{{ title() }}</h1>
     @if (username()) {
       <h2 class="greeting">Glædelig jul {{ username() }}! 🎅</h2>
     }
     <p>Tryk på en dag for at få en overraskelse!</p>
-    
-    <div class="button-group">
-      <button class="test-button" [class.active]="testMode()" (click)="toggleTestMode()">
-        {{ testMode() ? 'Test Mode: ON' : ' Test Mode: OFF' }}
-      </button>
-      <button class="reset-button" (click)="resetAllDays()">Reset All Days</button>
-      <button class="logout-button" (click)="logout()">Log Out</button>
-    </div>
   </div>
 
   @if (isLoading()) {
@@ -45,7 +49,7 @@
             <div class="door-icon">🎁</div>
           }
           @if (day.opened) {
-            <div class="day-content">{{ day.unlocked_content_text }}</div>
+            <div class="opened-icon">✨</div>
           }
           <div class="weekday-label">{{ day.weekday }}</div>
         </div>

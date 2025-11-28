@@ -2,12 +2,16 @@ import { Component, signal, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { Firestore, collection, doc, getDoc, setDoc } from '@angular/fire/firestore';
+// Storage can be provided in app.config.ts; here we only persist URLs in Firestore
+import { Popup } from '../popup/popup';
+import { Header } from '../header/header';
 
 interface CalendarDay {
   day: number;
   opened: boolean;
   weekday: string;
   unlocked_content_text?: string;
+  image_url?: string;
   isAvailable?: boolean;
   daysUntilAvailable?: number;
 }
@@ -15,7 +19,8 @@ interface CalendarDay {
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.html',
-  styleUrl: './calendar.scss'
+  styleUrl: './calendar.scss',
+  imports: [Popup, Header]
 })
 export class Calendar implements OnInit {
   private auth = inject(Auth);
@@ -23,11 +28,13 @@ export class Calendar implements OnInit {
   private firestore = inject(Firestore);
   private userId: string | null = null;
   
-  protected readonly title = signal('Jimmys Julekalender 2025!');
+  protected readonly title = signal(' Julekalender 2025!');
   protected readonly username = signal<string>('');
   protected readonly isLoading = signal<boolean>(true);
   protected readonly countdownMessage = signal<string>('');
   protected readonly testMode = signal<boolean>(false);
+  protected readonly showPopup = signal<boolean>(false);
+  protected readonly selectedDay = signal<CalendarDay | null>(null);
   
   private readonly weekdays = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
   
@@ -116,6 +123,7 @@ export class Calendar implements OnInit {
           const data = docSnap.data();
           updatedDays[i].opened = data['opened'] || false;
           updatedDays[i].unlocked_content_text = data['unlocked_content_text'] || '';
+          updatedDays[i].image_url = data['image_url'] || '';
           console.log(`Day ${dayNum} loaded: opened=${updatedDays[i].opened}, content="${updatedDays[i].unlocked_content_text}"`);
         } else {
           console.log(`Day ${dayNum}: No document found in Firestore`);
@@ -130,6 +138,13 @@ export class Calendar implements OnInit {
   }
 
   protected async openDay(day: CalendarDay): Promise<void> {
+    // If already opened, just show the popup
+    if (day.opened) {
+      this.selectedDay.set(day);
+      this.showPopup.set(true);
+      return;
+    }
+    
     // Check if the day is available (skip check in test mode)
     if (!this.testMode() && !day.isAvailable) {
       if (day.daysUntilAvailable === 1) {
@@ -143,14 +158,24 @@ export class Calendar implements OnInit {
       return;
     }
     
-    if (!day.opened) {
-      day.opened = true;
-      this.days.set([...this.days()]);
-      
-      // Save to Firestore
-      await this.saveDayToFirestore(day);
-    }
+    // Open the day for the first time
+    day.opened = true;
+    this.days.set([...this.days()]);
+    
+    // Save to Firestore
+    await this.saveDayToFirestore(day);
+    
+    // Show popup
+    this.selectedDay.set(day);
+    this.showPopup.set(true);
   }
+
+  protected closePopup(): void {
+    this.showPopup.set(false);
+    this.selectedDay.set(null);
+  }
+
+  // Images are stored in Firebase Storage; we keep only a link (image_url) in Firestore per day
 
   private async saveDayToFirestore(day: CalendarDay): Promise<void> {
     if (!this.userId) return;
@@ -164,6 +189,7 @@ export class Calendar implements OnInit {
         opened: day.opened,
         openedAt: new Date().toISOString(),
         unlocked_content_text: day.unlocked_content_text || '',
+        image_url: day.image_url || '',
         weekday: day.weekday
       });
       console.log(`Day ${day.day} saved to Firestore for user ${this.userId}`);
@@ -217,6 +243,7 @@ export class Calendar implements OnInit {
           opened: false,
           resetAt: new Date().toISOString(),
           unlocked_content_text: day.unlocked_content_text || '',
+          image_url: day.image_url || '',
           weekday: day.weekday
         });
       } catch (error) {

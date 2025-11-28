@@ -1,0 +1,24 @@
+<div class="popup-overlay" (click)="onClose()">
+  <div class="popup-content" (click)="$event.stopPropagation()">
+    <button class="close-button" (click)="onClose()">✕</button>
+    
+    <div class="popup-header">
+      <h2>Dag {{ day() }}</h2>
+      <p class="popup-weekday">{{ weekday() }}</p>
+    </div>
+    
+    <div class="popup-body">
+      <div class="popup-text">
+        <p>{{ text() }}</p>
+      </div>
+      
+      @if (imageUrl()) {
+        <div class="popup-image">
+          <div class="image-frame">
+            <img [src]="imageUrl()" [alt]="'Dag ' + day()">
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
