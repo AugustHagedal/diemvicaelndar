@@ -24,7 +24,7 @@ export class Header {
   }
 
   onToggleTest(): void { 
-    this.toggleTest.emit();
+    this.toggleTest.emit()
     this.closeMenu();
   }
   
