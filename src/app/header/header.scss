@@ -1,7 +1,7 @@
 .app-header {
   width: 100%;
   margin: 0;
-  padding: 1rem 2rem;
+  padding: 1rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -104,6 +104,16 @@
 
 .menu-item:active {
   background: rgba(220, 38, 38, 0.15);
+}
+
+.menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  z-index: 99;
 }
 
 @media screen and (max-width: 768px) {

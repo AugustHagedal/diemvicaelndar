@@ -2,9 +2,9 @@
   <div class="ui-menu">
     <button class="menu-button" (click)="toggleMenu()">☰</button>
     @if (isMenuOpen()) {
+      <div class="menu-backdrop" (click)="closeMenu()"></div>
       <div class="menu-dropdown">
-        <button class="menu-item" (click)="onReset()">Reset All Days</button>
-        <button class="menu-item" (click)="onLogout()">Log Out</button>
+        <button class="menu-item" (click)="onLogout()">Log Ud</button>
       </div>
     }
   </div>
