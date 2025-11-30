@@ -22,11 +22,16 @@
 
 main {
   min-height: 100vh;
-  background: url('/photos/background.jpg') center center / cover no-repeat fixed;
+  background: #744723 url('/photos/background.jpg') center center / cover no-repeat fixed;
   padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+}
+
+app-header {
+  align-self: flex-end;
+  margin: 0 1.5rem 1.5rem 0;
 }
 
 .header {
@@ -229,10 +234,11 @@ main {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
   max-width: 1200px;
   width: 100%;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
+  margin: 0 auto;
 }
 
 .calendar-day {
@@ -377,72 +383,50 @@ main {
   display: none;
 }
 
-@media screen and (max-width: 768px) {
-  .header h1 {
-    font-size: 2rem;
-  }
-
-  .header p {
-    font-size: 1rem;
-  }
-
+@media screen and (max-width: 1000px) {
   .calendar-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    padding: 0 0.5rem;
+    grid-template-columns: repeat(5, 1fr);
   }
-
   .calendar-day {
     padding: 0.75rem;
     gap: 0.25rem;
     border-radius: 0.75rem;
   }
-
   .day-number {
     font-size: 2rem;
   }
-
-  .calendar-day.opened .day-number {
-    font-size: 1.2rem;
-  }
-
-  .day-content {
-    font-size: 0.85rem;
-  }
-
   .weekday-label {
     font-size: 0.6rem;
     padding: 0.15rem 0.35rem;
+  }
+  .day-content {
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .calendar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .calendar-day {
+    padding: 0.5rem;
+    gap: 0.15rem;
+    border-radius: 0.5rem;
+  }
+  .day-number {
+    font-size: 1.5rem;
+  }
+  .weekday-label {
+    font-size: 0.55rem;
+    padding: 0.1rem 0.25rem;
+  }
+  .day-content {
+    font-size: 0.75rem;
   }
 }
 
 @media screen and (max-width: 480px) {
   .calendar-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    padding: 0 0.5rem;
-  }
-
-  .calendar-day {
-    padding: 0.5rem;
-    gap: 0.15rem;
-    border-radius: 0.5rem;
-  }
-
-  .day-number {
-    font-size: 1.5rem;
-  }
-
-  .calendar-day.opened .day-number {
-    font-size: 1rem;
-  }
-
-  .weekday-label {
-    font-size: 0.55rem;
-    padding: 0.1rem 0.25rem;
-  }
-
-  .day-content {
-    font-size: 0.75rem;
   }
 }
