@@ -105,13 +105,15 @@
 
   flex: 1 1 auto;      
   min-height: 0;
-  overflow-y: auto; 
+  overflow: hidden; /* prevent body from scrolling, only text should scroll */
 }
 
 .popup-text {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  overflow-y: auto; /* make text scrollable */
+  max-height: 100%;
+  padding-right: 0.5rem; /* space for scrollbar */
 
   p {
     font-size: 1.5rem;
@@ -139,9 +141,9 @@
     border-radius: 1rem; /* rounded frame corners */
     box-shadow: 0 6px 18px rgba(130, 102, 102, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.2);
     display: inline-block;
-    max-width: 100%;     
+    max-width: 100%;
+    max-height: 100%; /* ensure frame doesn't exceed popup height */
     overflow: hidden;
-    display: inline-block;
     box-sizing: border-box; /* include border in sizing so it doesn't overflow */
 
     img {
@@ -149,6 +151,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain; /* keep image inside frame without cropping */
+      max-height: calc(90vh - 200px); /* ensure image fits with header space */
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
   }

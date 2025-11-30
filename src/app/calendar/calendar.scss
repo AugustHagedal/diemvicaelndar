@@ -264,6 +264,10 @@ app-header {
   background: var(--card-hover);
 }
 
+.calendar-day:not(.opened):not(.locked) {
+  animation: breathe 3s ease-in-out infinite;
+}
+
 .calendar-day.opened {
   background: var(--opened-bg);
   color: white;
@@ -369,6 +373,17 @@ app-header {
   }
 }
 
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
+  }
+}
+
 .door-icon {
   font-size: 2rem;
   opacity: 0.6;
@@ -377,6 +392,28 @@ app-header {
 .locked-icon {
   font-size: 2.5rem;
   opacity: 0.7;
+}
+
+.calendar-image-frame {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  background: linear-gradient(145deg, #8B5A2B, #5A3A1B);
+  border-radius: 0.4rem;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-day-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.2rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .calendar-day.opened .door-icon {
@@ -402,6 +439,16 @@ app-header {
   .day-content {
     font-size: 0.85rem;
   }
+  .calendar-image-frame {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .door-icon {
+    font-size: 1.75rem;
+  }
+  .opened-icon {
+    font-size: 2.5rem;
+  }
 }
 
 @media screen and (max-width: 700px) {
@@ -423,10 +470,30 @@ app-header {
   .day-content {
     font-size: 0.75rem;
   }
+  .calendar-image-frame {
+    width: 2rem;
+    height: 2rem;
+  }
+  .door-icon {
+    font-size: 1.5rem;
+  }
+  .opened-icon {
+    font-size: 2rem;
+  }
 }
 
 @media screen and (max-width: 480px) {
   .calendar-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .calendar-image-frame {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .door-icon {
+    font-size: 1.25rem;
+  }
+  .opened-icon {
+    font-size: 1.75rem;
   }
 }
